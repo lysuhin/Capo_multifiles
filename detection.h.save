@@ -2,9 +2,9 @@
 #define DETECTION_H_INCLUDED
 
 #include "opencv2/ml/ml.hpp"
-#include "opencv2/core/core.hpp"        // Mat!
+#include "opencv2/core/core.hpp"
 #include "opencv2/opencv.hpp"
-#include "opencv2/highgui/highgui.hpp"  // imread, imWindow and so
+#include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
 using namespace cv;
@@ -15,10 +15,10 @@ class Detection{
 
     private:
 
-        string  TRAINING_EXAMPLES_POS_PATH = "/home/lysuhin/Coding/OpenCV/examples/train_positive/",
-                TRAINING_EXAMPLES_NEG_PATH = "/home/lysuhin/Coding/OpenCV/examples/train_negative/",
-                TESTING_EXAMPLES_POS_PATH = "/home/lysuhin/Coding/OpenCV/examples/test_positive/",
-                TESTING_EXAMPLES_NEG_PATH = "/home/lysuhin/Coding/OpenCV/examples/test_negative/",
+        string  TRAINING_EXAMPLES_POS_PATH = "/examples/train_positive/",
+                TRAINING_EXAMPLES_NEG_PATH = "/examples/train_negative/",
+                TESTING_EXAMPLES_POS_PATH = "/examples/test_positive/",
+                TESTING_EXAMPLES_NEG_PATH = "/examples/test_negative/",
                 IMAGE_FORMAT = "_.jpg",
                 MODEL_LOCATION = "/home/lysuhin/Coding/OpenCV/examples/svm_model.xml";
 
@@ -203,8 +203,6 @@ class Detection{
             else
                 LoadedImage.copyTo(image);
 
-            //cvtColor(LoadedImage, LoadedImage, CV_GRAY2BGR);
-
             for (size_t row = 0; row <= image.rows - windows_n_rows; row += StepSlideRows)
             {
                 for (size_t col = 0; col <= image.cols - windows_n_cols; col += StepSlideCols)
@@ -214,7 +212,7 @@ class Detection{
                     Mat Roi = image(windows);
 
                     ///Everything needed for HOG
-                    //resize(Roi, Roi, Size(64, 64));
+                    resize(Roi, Roi, Size(64, 64));
                     HOGDescriptor* hog = new HOGDescriptor(Size(64, 64), Size(16, 16), Size(8, 8), Size(16, 16), 9, 1, -1);
                     hog->compute(Roi, descriptor, Size(8, 8), Size(0, 0), location);
                     Mat query = Mat(descriptor);
@@ -224,11 +222,12 @@ class Detection{
                     delete hog;
 
                     if (found){
-                        points.push_back(Point2d(row, col));
+                        points.push_back(Point2d(col, row));
                     }
                 }
             }
         }
+        ~Detection();
 };
 
 

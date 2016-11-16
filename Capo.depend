@@ -22,7 +22,7 @@
 	"opencv2/highgui.hpp"
 	"opencv2/ml.hpp"
 
-1479309119 /home/lysuhin/Coding/OpenCV/Capo_multifiles/detection.h
+1479310801 /home/lysuhin/Coding/OpenCV/Capo_multifiles/detection.h
 	"opencv2/ml/ml.hpp"
 	"opencv2/core/core.hpp"
 	"opencv2/opencv.hpp"
