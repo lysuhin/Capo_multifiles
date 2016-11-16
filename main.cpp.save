@@ -77,11 +77,13 @@ int main(int argc, char* argv[])
             Point2d point1 = points.at(i);
             Point2d point2 = Point2d(point1.x + 64, point1.y + 64);
             rectangle(LoadedImage, point1, point2, Scalar(0, 255, 0), 1, 8, 0);
-            rectangle(LoadedImage, point1, point2, Scalar(0, 255, 0), 1, 8, 0);
+            rectangle(detector->image, point1, point2, Scalar(0, 255, 0), 1, 8, 0);
         }
-        imshow("raw", LoadedImage);
 
-        if (waitKey(30) == 27){
+        imshow("raw", LoadedImage);
+        imshow("gra", detector->image);
+
+        if (waitKey(50) == 27){
             break;
         };
         points.clear();

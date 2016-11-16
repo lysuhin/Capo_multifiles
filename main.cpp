@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
         imshow("raw", LoadedImage);
         imshow("gra", detector->image);
 
-        if (waitKey(50) == 27){
+        if (waitKey(1) == 27){
             break;
         };
         points.clear();

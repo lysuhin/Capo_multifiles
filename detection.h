@@ -165,7 +165,7 @@ class Detection{
             createFeatureMat(testingDataMat, test_features);
             Mat testingLabelsMat = Mat(test_labels);
 
-            #if 0
+            #if 1
             svm = SVM::create();
             Ptr<TrainData> trdata = TrainData::create(trainingDataMat, ROW_SAMPLE, trainingLabelsMat);
             svm->trainAuto(trdata);

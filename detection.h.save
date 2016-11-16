@@ -15,12 +15,12 @@ class Detection{
 
     private:
 
-        string  TRAINING_EXAMPLES_POS_PATH = "/examples/train_positive/",
-                TRAINING_EXAMPLES_NEG_PATH = "/examples/train_negative/",
-                TESTING_EXAMPLES_POS_PATH = "/examples/test_positive/",
-                TESTING_EXAMPLES_NEG_PATH = "/examples/test_negative/",
+        string  TRAINING_EXAMPLES_POS_PATH = "examples/train_positive/",
+                TRAINING_EXAMPLES_NEG_PATH = "examples/train_negative/",
+                TESTING_EXAMPLES_POS_PATH = "examples/test_positive/",
+                TESTING_EXAMPLES_NEG_PATH = "examples/test_negative/",
                 IMAGE_FORMAT = "_.jpg",
-                MODEL_LOCATION = "/home/lysuhin/Coding/OpenCV/examples/svm_model.xml";
+                MODEL_LOCATION = "examples/svm_model.xml";
 
         size_t  NUM_OF_POS_EXAMPLES = 465,
                 NUM_OF_NEG_EXAMPLES = 422,
