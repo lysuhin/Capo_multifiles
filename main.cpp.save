@@ -11,31 +11,7 @@ using namespace cv;
 using namespace cv::ml;
 using namespace std;
 
-
-void applyCLAHEToRGB(Mat source, Mat output){
-    Mat lab_image;
-    cvtColor(source, lab_image, CV_BGR2Lab);
-
-    // Extract the L channel
-    std::vector<cv::Mat> lab_planes(3);
-    cv::split(lab_image, lab_planes);  // now we have the L image in lab_planes[0]
-
-    // apply the CLAHE algorithm to the L channel
-    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
-    clahe->setClipLimit(4);
-    cv::Mat dst;
-    clahe->apply(lab_planes[0], dst);
-
-    // Merge the the color planes back into an Lab image
-    dst.copyTo(lab_planes[0]);
-    cv::merge(lab_planes, lab_image);
-
-    // convert back to RGB
-    cv::Mat image_clahe;
-    cv::cvtColor(lab_image, image_clahe, CV_Lab2BGR);
-
-    output = image_clahe;
-}
+size_t  GOOD_NUM_OF_POINTS = 5;
 
 int main(int argc, char* argv[])
 {
@@ -58,34 +34,57 @@ int main(int argc, char* argv[])
     cout << "Frame size : " << dWidth << " x " << dHeight << endl;
 
     while (1){
-        Mat LoadedImage;// = imread("/home/lysuhin/Coding/OpenCV/examples/test_image_4.jpg");
+        Mat image_raw, // = imread("/home/lysuhin/Coding/OpenCV/examples/test_image_4.jpg");
+            image_show;
 
         #if 1
-        bool bSuccess = cap.read(LoadedImage);
+        bool bSuccess = cap.read(image_raw);
         if (!bSuccess){
              cout << "Cannot read a frame from video stream" << endl;
              break;
         }
         #endif // 0
 
+        image_raw.copyTo(image_show);
+
         //flip(LoadedImage, LoadedImage, 1);
 
-        detector->detect(LoadedImage, points);
+        detector->detect(image_raw, points);
         cout << "points number = " << points.size() << endl;
 
+        #if 0
         for (size_t i = 0; i < points.size(); i++){
             Point2d point1 = points.at(i);
             Point2d point2 = Point2d(point1.x + 64, point1.y + 64);
             rectangle(LoadedImage, point1, point2, Scalar(0, 255, 0), 1, 8, 0);
             rectangle(detector->image, point1, point2, Scalar(0, 255, 0), 1, 8, 0);
         }
+        #else // 0
+        detector->drawDetected(image_show, points);
+        #endif // 0
 
-        imshow("raw", LoadedImage);
-        imshow("gra", detector->image);
 
-        if (waitKey(50) == 27){
+        imshow("1", image_show);
+        imshow("2", detector->image);
+
+        if (waitKey(1) == 27){
             break;
-        };
+        }
+
+        if (points.size() > GOOD_NUM_OF_POINTS){
+            cout << "Looks like a good picture. Use it? (y/n)" << endl;
+            char c = waitKey(3000);
+            if (c == 'y'){
+                cout << "Okay! Processing the picture..." << endl;
+                destroyAllWindows();
+                detector->detect(image_raw, points, true);
+                image_raw.copyTo(image_show);
+                detector->drawDetected(image_show, points);
+                imshow("3", image_show);y
+                waitKey();
+                break;
+            }
+        }
         points.clear();
     }
     return 0;

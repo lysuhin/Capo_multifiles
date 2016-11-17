@@ -27,18 +27,44 @@ class Detection{
                 NUM_OF_POS_TEST_EXAMPLES = 100,
                 NUM_OF_NEG_TEST_EXAMPLES = 100;
 
+        struct Point2d_counts{
+
+            double col;
+            double row;
+            size_t size;
+
+            Point2d_counts(){};
+
+            Point2d_counts(double a, double b)
+            {
+                col = a;
+                row = b;
+                size = 1;
+            };
+
+            void convertToPoint2d(Point2d& point){
+                point.x = col;
+                point.y = row;
+            }
+        };
+
     public:
 
        size_t   windows_n_rows = 64,
                 windows_n_cols = 64,
-                StepSlideRows = 32,
-                StepSlideCols = 32;
+                STEP_SLIDE_ROWS_ROUGH = 32,
+                STEP_SLIDE_COLS_ROUGH = 32,
+                STEP_SLIDE_ROWS_PRECISE = 2,
+                STEP_SLIDE_COLS_PRECISE = 2,
+
+                DETECTION_THRESHOLD = 3,
+                DETECTION_EPSILON = 30;
 
         bool    verbose,
                 needs_filtration;
 
         Ptr<SVM>    svm;
-        Mat     image;
+        Mat         image;
 
 
         Detection(bool vrbs, bool nds_fltrtn){
@@ -52,15 +78,13 @@ class Detection{
         };
 
         Mat applyFiltering(Mat img){
+
             Mat img_median,
                 img_clahe,
                 green,
                 green_f;
 
-            vector <Mat> channels;
-
-            split(img, channels);
-            green = channels[1];
+            extractChannel(img, green, 1);
             equalizeHist(green, green);
 
             Ptr<CLAHE> clahe = createCLAHE();
@@ -94,12 +118,11 @@ class Detection{
             return grad;
         }
 
-        void computeHOGs(
-                    bool type_of_examples,
-                    string PATH,
-                    size_t NUM_OF_EXAMPLES,
-                    vector <int>& labels,
-                    vector <vector <float>>& features){
+        void computeHOGs(bool type_of_examples,
+                        string PATH,
+                        size_t NUM_OF_EXAMPLES,
+                        vector <int>& labels,
+                        vector <vector <float>>& features){
 
             vector <float> descriptors;
             vector <Point> locations;
@@ -139,6 +162,17 @@ class Detection{
             }
             double accuracy = (double) right_answers / testingLabelsMat.rows;
             return accuracy;
+        }
+
+        void filterPoints(vector <Point2d_counts> points_in, vector <Point2d>& points_out, size_t threshold){
+
+            vector <Point2d> points_temp;
+
+            for (size_t i = 0; i < points_in.size(); i++)
+                if (points_in.at(i).size >= threshold)
+                    points_temp.push_back(Point2d(points_in.at(i).col, points_in.at(i).row));
+
+            points_out = points_temp;
         }
 
         void train(){
@@ -191,21 +225,32 @@ class Detection{
             testingLabelsMat.release();
         }
 
-        void detect(Mat LoadedImage, vector <Point2d> &points){
+        void detect(Mat LoadedImage, vector <Point2d> &points, bool needs_points_filtering = false){
 
             vector <float>  descriptor;
             vector <Point>  location;
+            vector <Point2d_counts> points_with_counts;
 
-            size_t      found = false;
+            points.clear();
+            points_with_counts.clear();
+            size_t  found = false,
+                    step_slide_cols = STEP_SLIDE_COLS_ROUGH,
+                    step_slide_rows = STEP_SLIDE_ROWS_ROUGH;
+
+            if (needs_points_filtering){
+                step_slide_cols = STEP_SLIDE_COLS_PRECISE;
+                step_slide_rows = STEP_SLIDE_ROWS_PRECISE;
+            }
+
 
             if (needs_filtration)
                 image = calcGradient(applyFiltering(LoadedImage));
             else
                 LoadedImage.copyTo(image);
 
-            for (size_t row = 0; row <= image.rows - windows_n_rows; row += StepSlideRows)
+            for (size_t row = 0; row <= image.rows - windows_n_rows; row += step_slide_rows)
             {
-                for (size_t col = 0; col <= image.cols - windows_n_cols; col += StepSlideCols)
+                for (size_t col = 0; col <= image.cols - windows_n_cols; col += step_slide_cols)
                 {
                     ///creating window for ROI
                     Rect windows(col, row, windows_n_rows, windows_n_cols);
@@ -221,12 +266,57 @@ class Detection{
                     query.release();
                     delete hog;
 
-                    if (found){
-                        points.push_back(Point2d(col, row));
+                    if (found)
+                    {
+                        if (needs_points_filtering){
+                            if (!points_with_counts.empty())
+                            {
+                                bool added = false;
+                                for(size_t i = 0; i < points_with_counts.size(); i++)
+                                {
+                                    double distance = sqrt(pow(double(col)-points_with_counts[i].col,2) + pow(double(row)-points_with_counts[i].row,2));
+                                    if (distance < DETECTION_EPSILON)
+                                    {
+                                        points_with_counts[i].col = (points_with_counts[i].size * points_with_counts[i].col + col) / (points_with_counts[i].size + 1);
+                                        points_with_counts[i].row = (points_with_counts[i].size * points_with_counts[i].row + row) / (points_with_counts[i].size + 1);
+                                        points_with_counts[i].size++;
+                                        added = true;
+                                        break;
+                                    }
+                                }
+                                if (!added)
+                                {
+                                    points_with_counts.push_back(Point2d_counts(double(col), double(row)));
+                                }
+                            }
+                            else
+                            {
+                                points_with_counts.push_back(Point2d_counts(double(col), double(row)));
+                            }
+                        }
+                        else
+                        {
+                            points.push_back(Point2d(col, row));
+                            //points_with_counts.push_back(Point2d_counts(col, row));
+                        }
                     }
                 }
             }
+            if (needs_points_filtering){
+                cout << "total number of points = " << points_with_counts.size() << endl;
+                filterPoints(points_with_counts, points, DETECTION_THRESHOLD);
+                cout << "true number of points = " << points.size() << endl;
+            }
         }
+
+        void drawDetected(Mat &image, vector <Point2d> points){
+            for (size_t i = 0; i < points.size(); i++){
+                Point2d point1 = points.at(i);
+                Point2d point2 = Point2d(point1.x + 64, point1.y + 64);
+                rectangle(image, point1, point2, Scalar(0, 255, 0), 1, 8, 0);
+            }
+        }
+
         ~Detection();
 };
 
