@@ -47,25 +47,11 @@ int main(int argc, char* argv[])
 
         image_raw.copyTo(image_show);
 
-        //flip(LoadedImage, LoadedImage, 1);
-
-        detector->detect(image_raw, points);
+        detector->detect(image_show, points);
         cout << "points number = " << points.size() << endl;
 
-        #if 0
-        for (size_t i = 0; i < points.size(); i++){
-            Point2d point1 = points.at(i);
-            Point2d point2 = Point2d(point1.x + 64, point1.y + 64);
-            rectangle(LoadedImage, point1, point2, Scalar(0, 255, 0), 1, 8, 0);
-            rectangle(detector->image, point1, point2, Scalar(0, 255, 0), 1, 8, 0);
-        }
-        #else // 0
-        detector->drawDetected(image_show, points);
-        #endif // 0
-
-
-        imshow("1", image_show);
-        imshow("2", detector->image);
+        imshow("1", image_raw);
+        imshow("2", image_show);
 
         if (waitKey(1) == 27){
             break;
@@ -77,9 +63,8 @@ int main(int argc, char* argv[])
             if (c == 'y'){
                 cout << "Okay! Processing the picture..." << endl;
                 destroyAllWindows();
-                detector->detect(image_raw, points, true);
                 image_raw.copyTo(image_show);
-                detector->drawDetected(image_show, points);
+                detector->detect(image_show, points, true, true);
                 imshow("3", image_show);
                 waitKey();
                 break;

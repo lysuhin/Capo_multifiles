@@ -1,12 +1,6 @@
 #ifndef DETECTION_H_INCLUDED
 #define DETECTION_H_INCLUDED
 
-#include "opencv2/ml/ml.hpp"
-#include "opencv2/core/core.hpp"
-#include "opencv2/opencv.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-
 using namespace cv;
 using namespace cv::ml;
 using namespace std;
@@ -64,8 +58,6 @@ class Detection{
                 needs_filtration;
 
         Ptr<SVM>    svm;
-        Mat         image;
-
 
         Detection(bool vrbs, bool nds_fltrtn){
             verbose = vrbs;
@@ -225,7 +217,10 @@ class Detection{
             testingLabelsMat.release();
         }
 
-        void detect(Mat LoadedImage, vector <Point2d> &points, bool needs_points_filtering = false){
+        void detect(Mat& image,
+                    vector <Point2d> &points,
+                    bool needs_points_filtering = false,
+                    bool needs_drawing = false){
 
             vector <float>  descriptor;
             vector <Point>  location;
@@ -244,9 +239,7 @@ class Detection{
 
 
             if (needs_filtration)
-                image = calcGradient(applyFiltering(LoadedImage));
-            else
-                LoadedImage.copyTo(image);
+                image = calcGradient(applyFiltering(image));
 
             for (size_t row = 0; row <= image.rows - windows_n_rows; row += step_slide_rows)
             {
@@ -297,7 +290,6 @@ class Detection{
                         else
                         {
                             points.push_back(Point2d(col, row));
-                            //points_with_counts.push_back(Point2d_counts(col, row));
                         }
                     }
                 }
@@ -307,9 +299,11 @@ class Detection{
                 filterPoints(points_with_counts, points, DETECTION_THRESHOLD);
                 cout << "true number of points = " << points.size() << endl;
             }
+            if (needs_drawing) drawDetected(image, points);
         }
 
-        void drawDetected(Mat &image, vector <Point2d> points){
+        void drawDetected(Mat& image, vector <Point2d> points){
+            cvtColor(image, image, CV_GRAY2BGR);
             for (size_t i = 0; i < points.size(); i++){
                 Point2d point1 = points.at(i);
                 Point2d point2 = Point2d(point1.x + 64, point1.y + 64);
