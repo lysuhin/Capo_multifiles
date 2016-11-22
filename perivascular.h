@@ -12,9 +12,11 @@ class Perivascular
 
     public:
 
-        float   coefficient;
+        double  coefficient;
+        double  mean_width;
         size_t  block_size;
         bool    verbose;
+        vector  <double> widths;
 
         Mat image;
 
@@ -70,7 +72,7 @@ class Perivascular
             image = smoothed;
         }
 
-        void calculate(Mat img, vector <Point2d> points, vector <double>& widths, bool needs_drawing = false){
+        void calculate(Mat img, vector <Point2d> points, bool needs_drawing = false){
 
             applyFiltering(img);
 
@@ -79,8 +81,6 @@ class Perivascular
 
             unsigned char   temp_intensity,
                             max_int;
-
-            double  mean_width = 0.;
 
             for (size_t i_point = 0; i_point < points.size(); i_point++){                            /// ordering loop by i_point
                 Point2d point = points.at(i_point);
@@ -128,17 +128,14 @@ class Perivascular
                     }
                 }
             }
-            if (verbose)
+            mean_width = 0;
+            for (size_t i = 0; i < widths.size(); i++)
             {
-                double mean = 0;
-                for (size_t i = 0; i < widths.size(); i++)
-                {
-                    mean += widths.at(i);
-                    cout << "Width #" << i << " = " << widths.at(i) << endl;
-                }
-                mean /= widths.size();
-                cout << "Mean width = " << mean << endl;
+                mean_width += widths.at(i);
+                if (verbose) cout << "Width #" << i << " = " << widths.at(i) << endl;
             }
+            mean_width /= widths.size();
+            if (verbose) cout << "Mean width = " << mean_width << endl;
         }
 
         void drawPerivascular(Mat image, vector <Point2d> &points, vector <float> &widths){

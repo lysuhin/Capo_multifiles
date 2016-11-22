@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
                 waitKey();
                 cout << "And to perivascular space width..." << endl;
                 vector <double> widths;
-                perivascular->calculate(image_raw, detector->points_result, widths, true);
+                perivascular->calculate(image_raw, detector->points_result, true);
                 imshow("perivascular space", perivascular->image);
                 waitKey();
                 break;
