@@ -47,8 +47,6 @@ int main(int argc, char* argv[])
 
         image_raw.copyTo(image_show);
 
-        //flip(LoadedImage, LoadedImage, 1);
-
         detector->detect(image_show, points);
         cout << "points number = " << points.size() << endl;
 

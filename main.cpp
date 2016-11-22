@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
                 cout << "Okay! Processing the picture..." << endl;
                 destroyAllWindows();
                 image_raw.copyTo(image_show);
-                detector->detect(image_show, points, true, true);
+                detector->detect(image_show, points, true, true, true);
                 imshow("3", image_show);
                 waitKey();
                 break;
