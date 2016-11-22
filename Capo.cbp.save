@@ -49,6 +49,7 @@
 			<Option target="Debug" />
 		</Unit>
 		<Unit filename="main.cpp" />
+		<Unit filename="perivascular.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

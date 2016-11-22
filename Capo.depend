@@ -1,11 +1,12 @@
 # depslib dependency file v1.0
-1479810705 source:/home/lysuhin/Coding/OpenCV/Capo_multifiles/main.cpp
+1479823266 source:/home/lysuhin/Coding/OpenCV/Capo_multifiles/main.cpp
 	"opencv2/core/core.hpp"
 	"opencv2/opencv.hpp"
 	"opencv2/highgui/highgui.hpp"
 	"opencv2/imgproc/imgproc.hpp"
 	"opencv2/ml/ml.hpp"
 	"detection.h"
+	"perivascular.h"
 	<iostream>
 	<string>
 
@@ -22,5 +23,7 @@
 	"opencv2/highgui.hpp"
 	"opencv2/ml.hpp"
 
-1479813447 /home/lysuhin/Coding/OpenCV/Capo_multifiles/detection.h
+1479823682 /home/lysuhin/Coding/OpenCV/Capo_multifiles/detection.h
+
+1479821777 /home/lysuhin/Coding/OpenCV/Capo_multifiles/perivascular.h
 

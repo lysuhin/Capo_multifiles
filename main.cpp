@@ -4,6 +4,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/ml/ml.hpp"
 #include "detection.h"
+#include "perivascular.h"
+
 #include <iostream>
 #include <string>
 
@@ -18,6 +20,8 @@ int main(int argc, char* argv[])
 
     Detection* detector = new Detection(1, 1);
     detector->train();
+
+    Perivascular* perivascular = new Perivascular();
 
     vector <Point2d> points;
 
@@ -47,25 +51,30 @@ int main(int argc, char* argv[])
 
         image_raw.copyTo(image_show);
 
-        detector->detect(image_show, points);
-        cout << "points number = " << points.size() << endl;
+        detector->detect(image_show);
 
-        imshow("1", image_raw);
-        imshow("2", image_show);
+        imshow("rgb", image_raw);
+        imshow("filtered", detector->image);
 
         if (waitKey(1) == 27){
             break;
         }
 
-        if (points.size() > GOOD_NUM_OF_POINTS){
+        if (detector->points_result.size() > GOOD_NUM_OF_POINTS){
             cout << "Looks like a good picture. Use it? (y/n)" << endl;
             char c = waitKey(3000);
-            if (c == 'y'){
+            if (c == 'y')
+            {
                 cout << "Okay! Processing the picture..." << endl;
-                destroyAllWindows();
+                //destroyAllWindows();
                 image_raw.copyTo(image_show);
-                detector->detect(image_show, points, true, true, true);
-                imshow("3", image_show);
+                detector->detect(image_show, true, true, true);
+                imshow("detected capillars", detector->image);
+                waitKey();
+                cout << "And to perivascular space width..." << endl;
+                vector <double> widths;
+                perivascular->calculate(image_raw, detector->points_result, widths, true);
+                imshow("perivascular space", perivascular->image);
                 waitKey();
                 break;
             }

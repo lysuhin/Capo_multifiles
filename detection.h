@@ -21,8 +21,6 @@ class Detection{
                 NUM_OF_POS_TEST_EXAMPLES = 100,
                 NUM_OF_NEG_TEST_EXAMPLES = 100;
 
-        vector <Point2d> detected_points;
-
         struct Point2d_counts{
 
             double col;
@@ -46,7 +44,7 @@ class Detection{
 
     public:
 
-       size_t   windows_n_rows = 64,
+        size_t  windows_n_rows = 64,
                 windows_n_cols = 64,
                 STEP_SLIDE_ROWS_ROUGH = 32,
                 STEP_SLIDE_COLS_ROUGH = 32,
@@ -63,6 +61,10 @@ class Detection{
                 needs_upper;
 
         Ptr<SVM>    svm;
+
+        Mat     image;
+
+        vector <Point2d> points_result;
 
         Detection(bool vrbs, bool nds_fltrtn){
             verbose = vrbs;
@@ -246,17 +248,16 @@ class Detection{
             testingLabelsMat.release();
         }
 
-        void detect(Mat& image,
-                    vector <Point2d> &points,
+        void detect(Mat img,
                     bool needs_points_filtering = false,
                     bool needs_drawing = false,
                     bool needs_upper = false){
 
+            img.copyTo(image);
             vector <float>  descriptor;
             vector <Point>  location;
             vector <Point2d_counts> points_with_counts;
 
-            points.clear();
             points_with_counts.clear();
             size_t  found = false,
                     step_slide_cols = STEP_SLIDE_COLS_ROUGH,
@@ -319,31 +320,44 @@ class Detection{
                         }
                         else
                         {
-                            points.push_back(Point2d(col, row));
+                            points_with_counts.push_back(Point2d_counts(col, row));
                         }
                     }
                 }
             }
             cvtColor(image, image, CV_GRAY2BGR);
-            if (needs_points_filtering){
-                cout << "total number of points = " << points_with_counts.size() << endl;
-                filterPoints(points_with_counts, points, DETECTION_THRESHOLD);
-                cout << "true number of points = " << points.size() << endl;
+            if (verbose) cout << "number of detected capillars : " << points_with_counts.size() << endl;
+            if (needs_points_filtering)
+            {
+                filterPoints(points_with_counts, points_result, DETECTION_THRESHOLD);
+                if (verbose) cout << "number of points after filtering : " << points_result.size() << endl;
             }
-
-            vector <Point2d> points_first_row;
-            if (needs_upper) getFirstRow(points, points_first_row);
-            if (needs_drawing) drawDetected(image, points_first_row, 1);
+            else
+            {
+                filterPoints(points_with_counts, points_result, 1);
+            }
+            if (needs_drawing) drawDetected(image, points_result, 1);
+            if (needs_upper)
+            {
+                vector <Point2d> points_first_row;
+                getFirstRow(points_result, points_first_row);
+                if (needs_drawing) drawDetected(image, points_first_row, 2);
+                points_result.resize(points_first_row.size());
+                copy(points_first_row.begin(), points_first_row.end(), points_result.begin());
+                if (verbose) cout << "number of points in first row : " << points_first_row.size() << endl;
+            }
         }
 
-        void drawDetected(Mat& image, vector <Point2d> points, size_t color = 1){
+        void drawDetected(Mat& image, vector <Point2d> points, size_t color){
             Scalar c;
-            switch (color){
-                case 0 : c = Scalar(255, 0, 0);
-                case 1 : c = Scalar(0, 255, 0);
-                case 2 : c = Scalar(0, 0, 255);
+            switch (color)
+            {
+                case 0 : c = Scalar(255, 0, 0); break;
+                case 1 : c = Scalar(0, 255, 0); break;
+                case 2 : c = Scalar(0, 0, 255); break;
             }
-            for (size_t i = 0; i < points.size(); i++){
+            for (size_t i = 0; i < points.size(); i++)
+            {
                 Point2d point1 = points.at(i);
                 Point2d point2 = Point2d(point1.x + 64, point1.y + 64);
                 rectangle(image, point1, point2, c, 1, 8, 0);
