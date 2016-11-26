@@ -66,15 +66,11 @@ class Detection{
 
         vector <Point2d> points_result;
 
-        Detection(bool vrbs, bool nds_fltrtn){
-            verbose = vrbs;
-            needs_filtration = nds_fltrtn;
+        Detection(bool verbose = true, bool needs_filtration = true)
+        {
+            this->verbose = verbose;
+            this->needs_filtration = needs_filtration;
         }
-
-        Detection(){
-            verbose = true,
-            needs_filtration = true;
-        };
 
         Mat applyFiltering(Mat img){
 
@@ -348,7 +344,7 @@ class Detection{
             }
         }
 
-        void drawDetected(Mat& image, vector <Point2d> points, size_t color){
+        void drawDetected(Mat& image, vector <Point2d>& points, size_t color){
             Scalar c;
             switch (color)
             {

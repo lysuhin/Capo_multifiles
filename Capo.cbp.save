@@ -45,6 +45,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="capillaroscope.h" />
 		<Unit filename="detection.h">
 			<Option target="Debug" />
 		</Unit>

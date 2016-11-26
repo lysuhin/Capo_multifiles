@@ -1,18 +1,19 @@
 #ifndef PERIVASCULAR_H
 #define PERIVASCULAR_H
 
-
-
 class Perivascular
 {
     private:
 
-        float DECAY_COEFFICIENT = 1.1;
-        size_t BLOCK_SIZE = 64;
+
 
     public:
 
-        float   coefficient;
+        float DECAY_COEFFICIENT = 1.1;
+        size_t BLOCK_SIZE = 64;
+
+        double  coefficient;
+        double  mean_width;
         size_t  block_size;
         bool    verbose;
         vector  <double> widths;
@@ -20,15 +21,20 @@ class Perivascular
         Mat image;
 
         Perivascular(){
-            coefficient = DECAY_COEFFICIENT;
-            block_size = BLOCK_SIZE;
-            verbose = 1;
+            this->verbose = true;
+            this->coefficient = DECAY_COEFFICIENT;
+            this->block_size = BLOCK_SIZE;
         }
-
-        Perivascular(float c, size_t b, size_t v = 1){
-            coefficient = c;
-            block_size = b;
-            verbose = v;
+        
+        Perivascular(bool verbose){
+            this->verbose = verbose;
+            
+        }
+ 
+        Perivascular(float coefficient, size_t block_size, bool verbose = 1){
+            this->coefficient = coefficient;
+            this->block_size = block_size;
+            this->verbose = verbose;
         }
 
         ~Perivascular() {}
@@ -71,7 +77,7 @@ class Perivascular
             image = smoothed;
         }
 
-        void calculate(Mat img, vector <Point2d> points, bool needs_drawing = false){
+        void calculate(Mat img, vector <Point2d>& points, bool needs_drawing = false){
 
             applyFiltering(img);
 
@@ -80,8 +86,6 @@ class Perivascular
 
             unsigned char   temp_intensity,
                             max_int;
-
-            double  mean_width = 0.;
 
             for (size_t i_point = 0; i_point < points.size(); i_point++){                            /// ordering loop by i_point
                 Point2d point = points.at(i_point);
@@ -133,10 +137,10 @@ class Perivascular
             for (size_t i = 0; i < widths.size(); i++)
             {
                 mean_width += widths.at(i);
-                if (verbose)cout << "Width #" << i << " = " << widths.at(i) << endl;
+                if (verbose) cout << "Width #" << i << " = " << widths.at(i) << endl;
             }
             mean_width /= widths.size();
-            cout << "Mean width = " << mean_width << endl;
+            if (verbose) cout << "Mean width = " << mean_width << endl;
         }
 
         void drawPerivascular(Mat image, vector <Point2d> &points, vector <float> &widths){

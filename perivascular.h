@@ -1,19 +1,20 @@
 #ifndef PERIVASCULAR_H
 #define PERIVASCULAR_H
 
-
-
 class Perivascular
 {
     private:
 
-        float DECAY_COEFFICIENT = 1.1;
-        size_t BLOCK_SIZE = 64;
+
 
     public:
 
+        float DECAY_COEFFICIENT = 1.1;
+        size_t BLOCK_SIZE = 64;
+
         double  coefficient;
         double  mean_width;
+        double  std_width;
         size_t  block_size;
         bool    verbose;
         vector  <double> widths;
@@ -21,15 +22,21 @@ class Perivascular
         Mat image;
 
         Perivascular(){
-            coefficient = DECAY_COEFFICIENT;
-            block_size = BLOCK_SIZE;
-            verbose = 1;
+            this->verbose = true;
+            this->coefficient = DECAY_COEFFICIENT;
+            this->block_size = BLOCK_SIZE;
         }
 
-        Perivascular(float c, size_t b, size_t v = 1){
-            coefficient = c;
-            block_size = b;
-            verbose = v;
+        Perivascular(bool verbose){
+            this->verbose = verbose;
+            this->coefficient = DECAY_COEFFICIENT;
+            this->block_size = BLOCK_SIZE;
+        }
+
+        Perivascular(float coefficient, size_t block_size, bool verbose = 1){
+            this->coefficient = coefficient;
+            this->block_size = block_size;
+            this->verbose = verbose;
         }
 
         ~Perivascular() {}
