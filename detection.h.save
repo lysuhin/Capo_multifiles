@@ -163,7 +163,7 @@ class Detection{
             return accuracy;
         }
 
-        void filterPoints(vector <Point2d_counts> points_in, vector <Point2d>& points_out, size_t threshold){
+        void filterPoints(vector <Point2d_counts>& points_in, vector <Point2d>& points_out, size_t threshold){
 
             vector <Point2d> points_temp;
 
@@ -174,7 +174,7 @@ class Detection{
             points_out = points_temp;
         }
 
-        void getFirstPoint(vector <Point2d> points, Point2d &first){
+        void getFirstPoint(vector <Point2d>& points, Point2d& first){
             double minY = points.back().y;
             for (size_t i = 0; i < points.size(); i++){
                 if (points.at(i).y < minY){
@@ -186,7 +186,7 @@ class Detection{
             cout << "First point: (" << first.x << ", " << first.y << ")" << endl;
         }
 
-        void getFirstRow(vector <Point2d> points_in, vector <Point2d> &points_out){
+        void getFirstRow(vector <Point2d>& points_in, vector <Point2d>& points_out){
             Point2d upper_point;
             getFirstPoint(points_in, upper_point);
             double threshold = upper_point.y;
@@ -336,12 +336,12 @@ class Detection{
             {
                 filterPoints(points_with_counts, points_result, 1);
             }
-            if (needs_drawing) drawDetected(image, points_result, 2);
+            if (needs_drawing) drawDetected(image, points_result, 1);
             if (needs_upper)
             {
                 vector <Point2d> points_first_row;
                 getFirstRow(points_result, points_first_row);
-                if (needs_drawing) drawDetected(image, points_first_row, 0);
+                if (needs_drawing) drawDetected(image, points_first_row, 2);
                 points_result.resize(points_first_row.size());
                 copy(points_first_row.begin(), points_first_row.end(), points_result.begin());
                 if (verbose) cout << "number of points in first row : " << points_first_row.size() << endl;
@@ -352,9 +352,9 @@ class Detection{
             Scalar c;
             switch (color)
             {
-                case 0 : c = Scalar(255, 0, 0);
-                case 1 : c = Scalar(0, 255, 0);
-                case 2 : c = Scalar(0, 0, 255);
+                case 0 : c = Scalar(255, 0, 0); break;
+                case 1 : c = Scalar(0, 255, 0); break;
+                case 2 : c = Scalar(0, 0, 255); break;
             }
             for (size_t i = 0; i < points.size(); i++)
             {

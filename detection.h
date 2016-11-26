@@ -163,7 +163,7 @@ class Detection{
             return accuracy;
         }
 
-        void filterPoints(vector <Point2d_counts> points_in, vector <Point2d>& points_out, size_t threshold){
+        void filterPoints(vector <Point2d_counts>& points_in, vector <Point2d>& points_out, size_t threshold){
 
             vector <Point2d> points_temp;
 
@@ -174,7 +174,7 @@ class Detection{
             points_out = points_temp;
         }
 
-        void getFirstPoint(vector <Point2d> points, Point2d &first){
+        void getFirstPoint(vector <Point2d>& points, Point2d& first){
             double minY = points.back().y;
             for (size_t i = 0; i < points.size(); i++){
                 if (points.at(i).y < minY){
@@ -186,7 +186,7 @@ class Detection{
             cout << "First point: (" << first.x << ", " << first.y << ")" << endl;
         }
 
-        void getFirstRow(vector <Point2d> points_in, vector <Point2d> &points_out){
+        void getFirstRow(vector <Point2d>& points_in, vector <Point2d>& points_out){
             Point2d upper_point;
             getFirstPoint(points_in, upper_point);
             double threshold = upper_point.y;

@@ -72,7 +72,7 @@ class Perivascular
             image = smoothed;
         }
 
-        void calculate(Mat img, vector <Point2d> points, bool needs_drawing = false){
+        void calculate(Mat img, vector <Point2d>& points, bool needs_drawing = false){
 
             applyFiltering(img);
 
