@@ -4,7 +4,13 @@ capillaroscopy .cbp project
 
 ##Structure of project:
 
-* **main.cpp** : calls Detection::detect(...) and Perivascular::calculate(...)
+* **main.cpp** : calls Capillaroscope::detect() from *capillaroscope.h*.
+
+* **capillaroscope.h** : contains facade class "Capillaroscope" that provides whole detection and calculation given an image and parameter *bool verbose* if needed to print out the inner logs. Numeric results are stored in structure *result* and visual results are stored as *Mat image_detected* and *Mat image_perivascular* as class' attributes.
+Necessary parameters for Detection::detect(...) and Perivascular::calculate(...) are passed to Capillaroscope::detect(...):
+   
+   *void detect(Mat img, bool needs_upper = false, bool needs_drawing_squares = true, bool needs_points_filtering = false,
+               bool needs_calculation_perivascular = false, bool needs_drawing_widths = false)*
 
 * **detection.h** : contains class "Detection" that, having received image source and/or parameters of detection, writes coordinates of found capillar positions into vector. For outer use only detect(...) method is required.
 Method Detection::detect(...) has parameters as follows:
