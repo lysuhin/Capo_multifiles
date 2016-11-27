@@ -3,8 +3,7 @@
 #include "opencv2/highgui/highgui.hpp"  // imread, imWindow and so
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/ml/ml.hpp"
-//#include "detection.h"
-//#include "perivascular.h"
+
 #include "capillaroscope.h"
 
 #include <iostream>
