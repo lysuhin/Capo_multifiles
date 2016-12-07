@@ -135,14 +135,21 @@ class Perivascular
                     }
                 }
             }
-            mean_width = 0;
+            this->mean_width = 0;
             for (size_t i = 0; i < widths.size(); i++)
             {
-                mean_width += widths.at(i);
+                this->mean_width += widths.at(i);
                 if (verbose) cout << "Width #" << i << " = " << widths.at(i) << endl;
             }
-            mean_width /= widths.size();
-            if (verbose) cout << "Mean width = " << mean_width << endl;
+            this->mean_width /= widths.size();
+
+            this->std_width = 0;
+            for (size_t i = 0; i < widths.size(); i++)
+                this->std_width += pow(widths.at(i) - this->mean_width, 2);
+            this->std_width /= sqrt(widths.size() - 1);
+
+
+            if (verbose) cout << "Mean width = " << this->mean_width << " +/- " << 1.96 * this->std_width << endl;
         }
 
         void drawPerivascular(Mat image, vector <Point2d> &points, vector <float> &widths){

@@ -14,6 +14,7 @@ class Perivascular
 
         double  coefficient;
         double  mean_width;
+        double  std_width;
         size_t  block_size;
         bool    verbose;
         vector  <double> widths;
@@ -25,12 +26,13 @@ class Perivascular
             this->coefficient = DECAY_COEFFICIENT;
             this->block_size = BLOCK_SIZE;
         }
-        
+
         Perivascular(bool verbose){
             this->verbose = verbose;
-            
+            this->coefficient = DECAY_COEFFICIENT;
+            this->block_size = BLOCK_SIZE;
         }
- 
+
         Perivascular(float coefficient, size_t block_size, bool verbose = 1){
             this->coefficient = coefficient;
             this->block_size = block_size;
@@ -133,14 +135,21 @@ class Perivascular
                     }
                 }
             }
-            mean_width = 0;
+            this->mean_width = 0;
             for (size_t i = 0; i < widths.size(); i++)
             {
-                mean_width += widths.at(i);
+                this->mean_width += widths.at(i);
                 if (verbose) cout << "Width #" << i << " = " << widths.at(i) << endl;
             }
-            mean_width /= widths.size();
-            if (verbose) cout << "Mean width = " << mean_width << endl;
+            this->mean_width /= widths.size();
+
+            this->std_width = 0;
+            for (size_t i = 0; i < widths.size(); i++)
+                this->std_width += pow(widths.at(i) - thismean_width, 2);
+            std_width /= sqrt(widths.size() - 1);
+
+
+            if (verbose) cout << "Mean width = " << mean_width << " +/- " << 1.96 * std_width << endl;
         }
 
         void drawPerivascular(Mat image, vector <Point2d> &points, vector <float> &widths){

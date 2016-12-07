@@ -218,6 +218,18 @@ class Detection{
             createFeatureMat(testingDataMat, test_features);
             Mat testingLabelsMat = Mat(test_labels);
 
+            #if 1
+            FileStorage file;
+            file.open("trainingDataMat.yml", cv::FileStorage::WRITE);
+            file << trainingDataMat;
+            file.open("trainingLabelsMat.yml", cv::FileStorage::WRITE);
+            file << trainingLabelsMat;
+            file.open("testingDataMat.yml", cv::FileStorage::WRITE);
+            file << testingDataMat;
+            file.open("testingLabelsMat.yml", cv::FileStorage::WRITE);
+            file << testingLabelsMat;
+            #endif // 0
+
             #if 0
             svm = SVM::create();
             Ptr<TrainData> trdata = TrainData::create(trainingDataMat, ROW_SAMPLE, trainingLabelsMat);
