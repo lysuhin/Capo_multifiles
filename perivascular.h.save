@@ -1,12 +1,9 @@
 #ifndef PERIVASCULAR_H
 #define PERIVASCULAR_H
 
+#include <math.h>
 class Perivascular
 {
-    private:
-
-
-
     public:
 
         float DECAY_COEFFICIENT = 1.1;
@@ -18,8 +15,6 @@ class Perivascular
         size_t  block_size;
         bool    verbose;
         vector  <double> widths;
-
-        Mat image;
 
         Perivascular(){
             this->verbose = true;
@@ -41,8 +36,13 @@ class Perivascular
 
         ~Perivascular() {}
 
-        void applyFiltering(Mat source, size_t clipLimit=4, size_t lut_param=8, size_t ksize=7){
-
+        void applyFiltering(Mat& source, size_t clipLimit=4, size_t lut_param=8, size_t ksize=7){
+            /// filtering function that
+            /// 1. extracts L-channel from L*a*b space
+            /// 2. applies histogram equalization (for better contrasting)
+            /// 3. applies CLAHE procedure (contrasting)
+            /// 4. shrinks histogram to (256 / lut_param) bins
+            /// 5. applies median filter and writes Mat back to source
             Mat     lab_image, L, clahed,
                     binned, smoothed;
 
@@ -76,11 +76,11 @@ class Perivascular
             //imshow("Smoothed", smoothed);
             binned.release();
 
-            image = smoothed;
+            source = smoothed.clone();
         }
 
-        void calculate(Mat img, vector <Point2d>& points, bool needs_drawing = false){
-
+        void calculate(Mat& img, const vector <Point2d>& points, bool needs_drawing = false){
+            /// calculation of the mean perivascular space width and it's std
             applyFiltering(img);
 
             size_t  max_int_y, found = 0,
@@ -88,32 +88,31 @@ class Perivascular
 
             unsigned char   temp_intensity,
                             max_int;
-
             for (size_t i_point = 0; i_point < points.size(); i_point++){                            /// ordering loop by i_point
                 Point2d point = points.at(i_point);
                 if (point.y - check_distance > 0)
                 {
-                    mean_width = 0.;
+                    this->mean_width = 0.;
                     for (size_t j = point.x; j < point.x + block_size; j++)                         /// horizontal loop by j
                     {
                         max_int = 0;
                         max_int_y = point.y;
-
-                        for (size_t i = point.y; i > point.y - check_distance; i--)                 /// vertical loop #1 by i
+                        for (int i = point.y; i > point.y - check_distance; i--)                 /// vertical loop #1 by i
                         {
-                            temp_intensity = image.at<unsigned char>(i, j);
+
+                            temp_intensity = img.at<unsigned char>(i, j);
+
                             if (temp_intensity >= max_int){
                                 max_int = temp_intensity;
                                 max_int_y = i;
                             }
                         }
-
                         for (size_t i = max_int_y; i > point.y - check_distance; i--)                 /// vertical loop #2 by i
                         {
-                            temp_intensity = image.at<unsigned char>(i, j);
+                            temp_intensity = img.at<unsigned char>(i, j);
                             if (temp_intensity <= (double) max_int / coefficient)
                             {                                                                         /// update mean for block
-                                mean_width += (point.y - i) / (double) block_size;
+                                this->mean_width += (point.y - i) / (double) block_size;
                                 found = 1;
                                 //circle(image, Point(j, i), 1, 1);
                                 break;
@@ -121,35 +120,37 @@ class Perivascular
                         }
                         if (found == 0)
                         {
-                            mean_width += ((double) check_distance) / block_size;
+                            this->mean_width += ((double) check_distance) / block_size;
                             //circle(image, Point(j, point.y - check_distance), 1, 1);
                         }
                         found = 0;
                     }
-                    widths.push_back(mean_width);                                                       /// update vector of widths
+                    this->widths.push_back(this->mean_width);                                                       /// update vector of widths
                     if (needs_drawing)
                     {
-                        line(image, Point2f(point.x + block_size / 2, point.y), Point2f(point.x + block_size / 2, point.y - mean_width), 1, 2);
-                        line(image, Point2f(point.x, point.y), Point2f(point.x + block_size, point.y), 1, 2);
-                        line(image, Point2f(point.x, point.y - mean_width), Point2f(point.x + block_size, point.y - mean_width), 1, 2);
+                        line(img, Point2f(point.x + block_size / 2, point.y), Point2f(point.x + block_size / 2, point.y - this->mean_width), 1, 2);
+                        line(img, Point2f(point.x, point.y), Point2f(point.x + block_size, point.y), 1, 2);
+                        line(img, Point2f(point.x, point.y - this->mean_width), Point2f(point.x + block_size, point.y - this->mean_width), 1, 2);
                     }
                 }
             }
+
+            /// calculation of mean of widths calculated
             this->mean_width = 0;
-            for (size_t i = 0; i < widths.size(); i++)
+            for (size_t i = 0; i < this->widths.size(); i++)
             {
-                this->mean_width += widths.at(i);
-                if (verbose) cout << "Width #" << i << " = " << widths.at(i) << endl;
+                this->mean_width += this->widths.at(i);
+                if (verbose) cout << "Width #" << i << " = " << this->widths.at(i) << endl;
             }
-            this->mean_width /= widths.size();
+            this->mean_width /= this->widths.size();
 
-            this->std_width = 0;
-            for (size_t i = 0; i < widths.size(); i++)
-                this->std_width += pow(widths.at(i) - thismean_width, 2);
-            std_width /= sqrt(widths.size() - 1);
+            /// calculation of standard deviation of widths calculated
+            this->std_width = 0.;
+            for (size_t i = 0; i < this->widths.size(); i++)
+                this->std_width += pow(this->widths.at(i) - this->mean_width, 2);
+            this->std_width = sqrt(std_width)sqrt(this->widths.size());
 
-
-            if (verbose) cout << "Mean width = " << mean_width << " +/- " << 1.96 * std_width << endl;
+            if (verbose) cout << "Mean width = " << this->mean_width << " +/- " << 1.96 * this->std_width << endl;
         }
 
         void drawPerivascular(Mat image, vector <Point2d> &points, vector <float> &widths){

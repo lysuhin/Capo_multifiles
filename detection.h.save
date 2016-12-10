@@ -62,12 +62,9 @@ class Detection{
 
         Ptr<SVM>    svm;
 
-        Mat     image;
-
         vector <Point2d> points_result;
 
-        Detection(bool verbose = true, bool needs_filtration = true)
-        {
+        Detection(bool verbose = true, bool needs_filtration = true){
             this->verbose = verbose;
             this->needs_filtration = needs_filtration;
         }
@@ -159,7 +156,7 @@ class Detection{
             return accuracy;
         }
 
-        void filterPoints(vector <Point2d_counts>& points_in, vector <Point2d>& points_out, size_t threshold){
+        void filterPoints(const vector <Point2d_counts>& points_in, vector <Point2d>& points_out, size_t threshold){
 
             vector <Point2d> points_temp;
 
@@ -170,7 +167,7 @@ class Detection{
             points_out = points_temp;
         }
 
-        void getFirstPoint(vector <Point2d>& points, Point2d& first){
+        void getFirstPoint(const vector <Point2d>& points, Point2d& first){
             double minY = points.back().y;
             for (size_t i = 0; i < points.size(); i++){
                 if (points.at(i).y < minY){
@@ -182,7 +179,7 @@ class Detection{
             cout << "First point: (" << first.x << ", " << first.y << ")" << endl;
         }
 
-        void getFirstRow(vector <Point2d>& points_in, vector <Point2d>& points_out){
+        void getFirstRow(const vector <Point2d>& points_in, vector <Point2d>& points_out){
             Point2d upper_point;
             getFirstPoint(points_in, upper_point);
             double threshold = upper_point.y;
@@ -218,16 +215,16 @@ class Detection{
             createFeatureMat(testingDataMat, test_features);
             Mat testingLabelsMat = Mat(test_labels);
 
-            #if 1
+            #if 0
             FileStorage file;
             file.open("trainingDataMat.yml", cv::FileStorage::WRITE);
-            file << trainingDataMat;
+            file << "trainingDataMat" << trainingDataMat;
             file.open("trainingLabelsMat.yml", cv::FileStorage::WRITE);
-            file << trainingLabelsMat;
+            file << "trainingLabelsMat" << trainingLabelsMat;
             file.open("testingDataMat.yml", cv::FileStorage::WRITE);
-            file << testingDataMat;
+            file << "testingDataMat" << testingDataMat;
             file.open("testingLabelsMat.yml", cv::FileStorage::WRITE);
-            file << testingLabelsMat;
+            file << "testingLabelsMat" << testingLabelsMat;
             #endif // 0
 
             #if 0
@@ -256,12 +253,11 @@ class Detection{
             testingLabelsMat.release();
         }
 
-        void detect(Mat img,
+        void detect(Mat& image,
                     bool needs_points_filtering = false,
                     bool needs_drawing = false,
                     bool needs_upper = false){
 
-            img.copyTo(image);
             vector <float>  descriptor;
             vector <Point>  location;
             vector <Point2d_counts> points_with_counts;
@@ -277,8 +273,8 @@ class Detection{
             }
 
 
-            if (needs_filtration)
-                image = calcGradient(applyFiltering(image));
+            if (this->needs_filtration)
+                image = calcGradient(applyFiltering(image));//.clone();
 
             for (size_t row = 0; row <= image.rows - windows_n_rows; row += step_slide_rows)
             {
@@ -335,27 +331,30 @@ class Detection{
             }
             cvtColor(image, image, CV_GRAY2BGR);
             if (verbose) cout << "number of detected capillars : " << points_with_counts.size() << endl;
-            if (needs_points_filtering)
+            if (points_with_counts.size() > 0)
             {
-                filterPoints(points_with_counts, points_result, DETECTION_THRESHOLD);
-                if (verbose) cout << "number of points after filtering : " << points_result.size() << endl;
+                if (needs_points_filtering)
+                {
+                    filterPoints(points_with_counts, points_result, DETECTION_THRESHOLD);
+                    if (verbose) cout << "number of points after filtering : " << points_result.size() << endl;
+                }
+                else
+                {
+                    filterPoints(points_with_counts, points_result, 1);
+                }
+                if (needs_drawing) drawDetected(image, points_result, 1);
+                if (needs_upper)
+                {
+                    vector <Point2d> points_first_row;
+                    getFirstRow(points_result, points_first_row);
+                    if (needs_drawing) drawDetected(image, points_first_row, 2);
+                    points_result.resize(points_first_row.size());
+                    copy(points_first_row.begin(), points_first_row.end(), points_result.begin());
+                    if (verbose) cout << "number of points in first row : " << points_first_row.size() << endl;
+                }
             }
-            else
-            {
-                filterPoints(points_with_counts, points_result, 1);
-            }
-            if (needs_drawing) drawDetected(image, points_result, 1);
-            if (needs_upper)
-            {
-                vector <Point2d> points_first_row;
-                getFirstRow(points_result, points_first_row);
-                if (needs_drawing) drawDetected(image, points_first_row, 2);
-                points_result.resize(points_first_row.size());
-                copy(points_first_row.begin(), points_first_row.end(), points_result.begin());
-                if (verbose) cout << "number of points in first row : " << points_first_row.size() << endl;
-            }
+            else points_result.resize(0);
         }
-
         void drawDetected(Mat& image, vector <Point2d>& points, size_t color){
             Scalar c;
             switch (color)

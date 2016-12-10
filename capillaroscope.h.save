@@ -27,9 +27,9 @@ class Capillaroscope
         Perivascular*   perivascular;
         Results*        results;
 
-        Mat     image_source,
-                image_detected,
-                image_perivascular;
+        Mat     image_source,                       /// this Mat CAN NOT BE edited and is kept as CONST
+                image_detected,                     /// this Mat CAN BE edited (painted with squares and so)
+                image_perivascular;                 /// thus Mat CAN BE editer (...)
 
         size_t  number_of_detected_points;
 
@@ -40,13 +40,12 @@ class Capillaroscope
         {
             this->verbose = verbose;
             this->detector = new Detection(verbose);
-            //this->perivascular = new Perivascular(verbose);
             this->results = new Results;
 
             detector->train();
         }
 
-        void detect(Mat img,
+        void detect(const Mat& img,
                     bool needs_upper = false,
                     bool needs_drawing_squares = true,
                     bool needs_points_filtering = false,
@@ -55,24 +54,29 @@ class Capillaroscope
         {
             this->image_source = img;
 
-            if (needs_drawing_squares)                                  /// (copy image) or (clone header)
-                this->image_source.copyTo(this->image_detected);        /// depending on need to edit image
-            else
-                this->image_detected = image_source;
+            if (needs_drawing_squares || needs_drawing_widths)
+                this->image_detected = (this->image_source).clone();    /// (copy image) or (clone header)
+            else                                                        /// depending on need to edit image
+                this->image_detected = this->image_source;
 
             detector->detect(image_detected, needs_points_filtering, needs_drawing_squares, needs_upper);
             this->number_of_detected_points = detector->points_result.size();
-
+            cout << "DETECTIONE NO PROBLEMO" << endl;
             if (needs_calculation_perivascular)
             {
+                cout << "PERIVASCULARI STARTINO" << endl;
+
                 this->perivascular = new Perivascular(verbose);
 
                 if (needs_drawing_widths)
-                    this->image_source.copyTo(this->image_perivascular);
+                    this->image_perivascular = (this->image_source).clone();
                 else
                     this->image_perivascular = image_source;
-
+            
+                cout << "PERIVASCULARI CALCULATORE" << endl;
                 perivascular->calculate(image_perivascular, detector->points_result, needs_drawing_widths);
+                cout << "PERIVASCULARI CALCULATORE" << endl;
+    
                 this->results->width_of_perivascular_mean = perivascular->mean_width;
                 this->results->width_of_perivascular_std = perivascular->std_width;
             }

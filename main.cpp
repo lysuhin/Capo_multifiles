@@ -18,9 +18,9 @@ size_t  GOOD_NUM_OF_POINTS = 5;
 int main(int argc, char* argv[])
 {
 
-    Capillaroscope* capillaroscope = new Capillaroscope(true);
+    Capillaroscope* capillaroscope = new Capillaroscope();
 
-    VideoCapture cap(0); // open the video camera no. 0
+    VideoCapture cap(1); // open the video camera no. 0
     if (!cap.isOpened())  // if not success, exit program
     {
         cout << "Cannot open the video cam" << endl;
@@ -34,11 +34,11 @@ int main(int argc, char* argv[])
 
     while (1){
 
-        if (waitKey(1) == 27) break;
+        if (waitKey(10) == 27) break;
 
-        Mat image; // = imread("/home/lysuhin/Coding/OpenCV/examples/test_image_4.jpg");
+        Mat image = imread("examples/file43.jpg");
 
-        #if 1
+        #if 0
         bool bSuccess = cap.read(image);
         if (!bSuccess){
              cout << "Cannot read a frame from video stream" << endl;
@@ -48,7 +48,8 @@ int main(int argc, char* argv[])
 
         imshow("rgb", image);
 
-        capillaroscope->detect(image, true);
+        capillaroscope->detect(image, false);
+
         imshow("filtered", capillaroscope->image_detected);
 
         if (capillaroscope->number_of_detected_points > GOOD_NUM_OF_POINTS){
@@ -60,16 +61,20 @@ int main(int argc, char* argv[])
             {
                 cout << "Okay! Processing the picture..." << endl;
 
-                capillaroscope->detect(image, true, true, true, true);
+                capillaroscope->detect(image, true, true, true, true, true);
                 imshow("detected capillars", capillaroscope->image_detected);
 
                 cout << "And to perivascular space width..." << endl;
                 imshow("perivascular space", capillaroscope->image_perivascular);
 
-                waitKey();
-                break;
+                cout << "Continue? (y/n)" << endl;
+                char k = waitKey(50000);
+                if (k == 'y')
+                    continue;
+                else
+                    break;
             }
-            else continue;
+            continue;
         }
     }
     return 0;
