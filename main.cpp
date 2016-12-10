@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
         if (waitKey(10) == 27) break;
 
-        Mat image = imread("examples/file43.jpg");
+        Mat image = imread("examples/file1.jpg");
 
         #if 0
         bool bSuccess = cap.read(image);
