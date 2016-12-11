@@ -64,7 +64,6 @@ int main(int argc, char* argv[])
                 capillaroscope->detect(image, true, true, true, true, true);
                 imshow("detected capillars", capillaroscope->image_detected);
 
-                cout << "And to perivascular space width..." << endl;
                 imshow("perivascular space", capillaroscope->image_perivascular);
 
                 cout << "Continue? (y/n)" << endl;

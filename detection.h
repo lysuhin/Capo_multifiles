@@ -46,15 +46,15 @@ class Detection{
 
         size_t  windows_n_rows = 64,
                 windows_n_cols = 64,
-                STEP_SLIDE_ROWS_ROUGH = 32,
-                STEP_SLIDE_COLS_ROUGH = 32,
-                STEP_SLIDE_ROWS_PRECISE = 2,
-                STEP_SLIDE_COLS_PRECISE = 2,
+                STEP_SLIDE_ROWS_ROUGH = 16,
+                STEP_SLIDE_COLS_ROUGH = 16,
+                STEP_SLIDE_ROWS_PRECISE = 4,
+                STEP_SLIDE_COLS_PRECISE = 4,
 
                 DETECTION_THRESHOLD = 3,
                 DETECTION_EPSILON = 30,
 
-                CAPILLARS_ROW_WIDTH = 32;
+                CAPILLARS_ROW_WIDTH = 40;
 
         bool    verbose,
                 needs_filtration,
@@ -69,7 +69,7 @@ class Detection{
             this->needs_filtration = needs_filtration;
         }
 
-        Mat applyFiltering(Mat img){
+        Mat applyFiltering(const Mat& img){
 
             Mat img_median,
                 img_clahe,
@@ -90,7 +90,7 @@ class Detection{
             return green_f;
         }
 
-        Mat calcGradient(Mat src_gray){
+        Mat calcGradient(const Mat& src_gray){
 
             int scale = 1,
                 delta = 0,
@@ -136,13 +136,13 @@ class Detection{
             }
         }
 
-        void createFeatureMat(Mat& matrix, vector <vector <float>>& features){
+        void createFeatureMat(Mat& matrix, const vector <vector <float>>& features){
             for (size_t i = 0; i < features.size(); i++)
                 for (size_t j = 0; j < features.back().size(); j++)
                     matrix.at<float>(i, j) = features[i][j];
         }
 
-        double calculateAccuracy(Ptr<SVM> svm, Mat testingDataMat, Mat testingLabelsMat, bool verbose){
+        double calculateAccuracy(const Ptr<SVM>& svm, const Mat& testingDataMat, const Mat& testingLabelsMat, bool verbose){
             Mat query;
             size_t right_answers = 0;
             for (int i = 0; i < testingLabelsMat.rows; i++){
@@ -355,7 +355,7 @@ class Detection{
             }
             else this->points_result.resize(0);
         }
-        void drawDetected(Mat& image, vector <Point2d>& points, size_t color){
+        void drawDetected(Mat& image, const vector <Point2d>& points, size_t color){
             Scalar c;
             switch (color)
             {

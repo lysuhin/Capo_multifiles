@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
 
         if (waitKey(10) == 27) break;
 
-        Mat image = imread("examples/file1.jpg");
+        Mat image;// = imread("examples/file1.jpg");
 
-        #if 0
+        #if 1
         bool bSuccess = cap.read(image);
         if (!bSuccess){
              cout << "Cannot read a frame from video stream" << endl;
