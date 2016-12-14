@@ -4,8 +4,6 @@
 #include "detection.h"
 #include "perivascular.h"
 
-/// facade? creator?
-
 class Capillaroscope
 {
     private:

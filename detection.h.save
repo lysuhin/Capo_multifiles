@@ -41,40 +41,11 @@ class Detection{
                 point.y = row;
             }
         };
-
-    public:
-
-        size_t  windows_n_rows = 64,
-                windows_n_cols = 64,
-                STEP_SLIDE_ROWS_ROUGH = 16,
-                STEP_SLIDE_COLS_ROUGH = 16,
-                STEP_SLIDE_ROWS_PRECISE = 2,
-                STEP_SLIDE_COLS_PRECISE = 2,
-
-                DETECTION_THRESHOLD = 3,
-                DETECTION_EPSILON = 30,
-
-                CAPILLARS_ROW_WIDTH = 32;
-
-        bool    verbose,
-                needs_filtration,
-                needs_upper;
-
-        Ptr<SVM>    svm;
-
-        vector <Point2d> points_result;
-
-        Detection(bool verbose = true, bool needs_filtration = true){
-            this->verbose = verbose;
-            this->needs_filtration = needs_filtration;
-        }
-
-        Mat applyFiltering(Mat& img){
-
-            Mat img_median,
-                img_clahe,
-                green,
-                green_f;
+        
+        Mat applyFiltering(const Mat& img){ 
+            
+            Mat img_median, img_clahe,
+                green,  green_f;
 
             extractChannel(img, green, 1);
             equalizeHist(green, green);
@@ -90,7 +61,7 @@ class Detection{
             return green_f;
         }
 
-        Mat calcGradient(Mat& src_gray){
+        Mat calcGradient(const Mat& src_gray){
 
             int scale = 1,
                 delta = 0,
@@ -189,6 +160,49 @@ class Detection{
                 }
             }
             cout << "Points in first row:" << points_out.size() << endl;
+        }
+        
+        void drawDetected(Mat& image, const vector <Point2d>& points, size_t color){
+            Scalar c;
+            switch (color)
+            {
+                case 0 : c = Scalar(255, 0, 0); break;
+                case 1 : c = Scalar(0, 255, 0); break;
+                case 2 : c = Scalar(0, 0, 255); break;
+            }
+            for (size_t i = 0; i < points.size(); i++)
+            {
+                Point2d point1 = points.at(i);
+                Point2d point2 = Point2d(point1.x + 64, point1.y + 64);
+                rectangle(image, point1, point2, c, 1, 8, 0);
+            }
+        }
+
+    public:
+
+        size_t  windows_n_rows = 64,
+                windows_n_cols = 64,
+                STEP_SLIDE_ROWS_ROUGH = 16,
+                STEP_SLIDE_COLS_ROUGH = 16,
+                STEP_SLIDE_ROWS_PRECISE = 4,
+                STEP_SLIDE_COLS_PRECISE = 4,
+
+                DETECTION_THRESHOLD = 3,
+                DETECTION_EPSILON = 30,
+
+                CAPILLARS_ROW_WIDTH = 40;
+
+        bool    verbose,
+                needs_filtration,
+                needs_upper;
+
+        Ptr<SVM>    svm;
+
+        vector <Point2d> points_result;
+
+        Detection(bool verbose = true, bool needs_filtration = true){
+            this->verbose = verbose;
+            this->needs_filtration = needs_filtration;
         }
 
         void train(){
@@ -355,22 +369,6 @@ class Detection{
             }
             else this->points_result.resize(0);
         }
-        void drawDetected(Mat& image, vector <Point2d>& points, size_t color){
-            Scalar c;
-            switch (color)
-            {
-                case 0 : c = Scalar(255, 0, 0); break;
-                case 1 : c = Scalar(0, 255, 0); break;
-                case 2 : c = Scalar(0, 0, 255); break;
-            }
-            for (size_t i = 0; i < points.size(); i++)
-            {
-                Point2d point1 = points.at(i);
-                Point2d point2 = Point2d(point1.x + 64, point1.y + 64);
-                rectangle(image, point1, point2, c, 1, 8, 0);
-            }
-        }
-
         ~Detection();
 };
 

@@ -4,37 +4,7 @@
 #include <math.h>
 class Perivascular
 {
-    public:
-
-        float DECAY_COEFFICIENT = 1.1;
-        size_t BLOCK_SIZE = 64;
-
-        double  coefficient;
-        double  mean_width;
-        double  std_width;
-        size_t  block_size;
-        bool    verbose;
-        vector  <double> widths;
-
-        Perivascular(){
-            this->verbose = true;
-            this->coefficient = DECAY_COEFFICIENT;
-            this->block_size = BLOCK_SIZE;
-        }
-
-        Perivascular(bool verbose){
-            this->verbose = verbose;
-            this->coefficient = DECAY_COEFFICIENT;
-            this->block_size = BLOCK_SIZE;
-        }
-
-        Perivascular(float coefficient, size_t block_size, bool verbose = 1){
-            this->coefficient = coefficient;
-            this->block_size = block_size;
-            this->verbose = verbose;
-        }
-
-        ~Perivascular() {}
+    private:
 
         void applyFiltering(Mat& source, size_t clipLimit=4, size_t lut_param=8, size_t ksize=7){
             /// filtering function that
@@ -78,6 +48,49 @@ class Perivascular
 
             source = smoothed.clone();
         }
+
+        void drawPerivascular(Mat image, vector <Point2d> &points, vector <float> &widths){
+            for (size_t i = 0; i < points.size(); i++)
+            {
+                Point2d point = points.at(i);
+                float mean_width = widths.at(i);
+                line(image, Point2f(point.x + block_size / 2, point.y), Point2f(point.x + block_size / 2, point.y - mean_width), 1, 2);
+                line(image, Point2f(point.x, point.y), Point2f(point.x + block_size, point.y), 1, 2);
+                line(image, Point2f(point.x, point.y - mean_width), Point2f(point.x + block_size, point.y - mean_width), 1, 2);
+            }
+        }
+
+    public:
+
+        float DECAY_COEFFICIENT = 1.1;
+        size_t BLOCK_SIZE = 64;
+
+        double  coefficient;
+        double  mean_width;
+        double  std_width;
+        size_t  block_size;
+        bool    verbose;
+        vector  <double> widths;
+
+        Perivascular(){
+            this->verbose = true;
+            this->coefficient = DECAY_COEFFICIENT;
+            this->block_size = BLOCK_SIZE;
+        }
+
+        Perivascular(bool verbose){
+            this->verbose = verbose;
+            this->coefficient = DECAY_COEFFICIENT;
+            this->block_size = BLOCK_SIZE;
+        }
+
+        Perivascular(float coefficient, size_t block_size, bool verbose = 1){
+            this->coefficient = coefficient;
+            this->block_size = block_size;
+            this->verbose = verbose;
+        }
+
+        ~Perivascular() {}
 
         void calculate(Mat& img, const vector <Point2d>& points, bool needs_drawing = false){
             /// calculation of the mean perivascular space width and it's std
@@ -151,17 +164,6 @@ class Perivascular
             this->std_width = sqrt((std_width) / (this->widths.size()));
 
             if (verbose) cout << "Mean width = " << this->mean_width << " +/- " << 1.96 * this->std_width << endl;
-        }
-
-        void drawPerivascular(Mat image, vector <Point2d> &points, vector <float> &widths){
-            for (size_t i = 0; i < points.size(); i++)
-            {
-                Point2d point = points.at(i);
-                float mean_width = widths.at(i);
-                line(image, Point2f(point.x + block_size / 2, point.y), Point2f(point.x + block_size / 2, point.y - mean_width), 1, 2);
-                line(image, Point2f(point.x, point.y), Point2f(point.x + block_size, point.y), 1, 2);
-                line(image, Point2f(point.x, point.y - mean_width), Point2f(point.x + block_size, point.y - mean_width), 1, 2);
-            }
         }
 };
 

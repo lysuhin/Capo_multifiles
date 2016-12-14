@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 
     Capillaroscope* capillaroscope = new Capillaroscope();
 
-    VideoCapture cap(1); // open the video camera no. 0
+    VideoCapture cap(0); // open the video camera no. 0
     if (!cap.isOpened())  // if not success, exit program
     {
         cout << "Cannot open the video cam" << endl;
